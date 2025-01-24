@@ -1,0 +1,31 @@
+{
+    "name": "tareq1988/laravel-inertia-crud",
+    "description": "A CRUD generator for inertia and react",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Tareq1988\\InertiaCrud\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Tareq Hasan",
+            "email": "tareq1988@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": false,
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "laravel/framework": "^10.0|^11.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tareq1988\\InertiaCrud\\ServiceProvider"
+            ]
+        }
+    }
+}

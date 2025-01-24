@@ -1,0 +1,167 @@
+import React, { useState } from 'react';
+import { PlusIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import {
+  Button,
+  ConfirmModal,
+  Modal,
+  ModalActions,
+  ModalBody,
+  ModalHeader,
+  Table,
+  TableBody,
+  TableHeader,
+  TextField,
+  Textarea
+} from '@wedevs/tail-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import Pagination from '@/Components/Pagination';
+import { {{ model }}, PaginatedResource } from '@/types';
+
+type Props = {
+  {{ modelLower }}s: PaginatedResource<{{ model }}>;
+  filters: {
+    search?: string;
+    sort?: string;
+    direction?: string;
+  };
+};
+
+const formatDate = (date: string, format: string) => {
+  return new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(date));
+};
+
+const Index = ({ {{ modelLower }}s, filters }: Props) => {
+  const [search, setSearch] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState<{{ model }} | null>(null);
+
+  const form = useForm({
+{{ formInitialState }}
+  });
+
+  const handleSearch = (value: string) => {
+    router.reload({ data: { search: value, page: 1 } });
+  };
+
+  const onDelete = ({{ modelLower }}: {{ model }}) => {
+    setDeleting({{ modelLower }});
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = () => {
+    router.delete(route('{{ modelLower }}s.destroy', deleting?.id), {
+      onSuccess: () => {
+        setShowDeleteModal(false);
+      },
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    form.post(route('{{ modelLower }}s.store'), {
+      onSuccess: () => setShowCreateModal(false)
+    });
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto my-8">
+      <div className="flex flex-wrap items-center justify-between sm:flex-nowrap mb-8">
+        <h3 className="text-xl font-medium leading-6 text-gray-900">{{ model }}s</h3>
+        <Button variant="primary" className="inline-flex" onClick={() => setShowCreateModal(true)}>
+          <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+          Add {{ model }}
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-end mb-4">
+        <div className="w-full md:w-1/2 lg:w-1/3">
+          <TextField
+            type="search"
+            placeholder="Search {{ modelLower }}s..."
+            value={search}
+            className="w-full"
+            onChange={(value) => setSearch(value)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'Enter') {
+                handleSearch(search);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {{{ modelLower }}s.data.length > 0 ? (
+        <div className="overflow-x-auto md:overflow-auto lg:overflow-auto">
+          <Table className="text-left text-gray-900 dark:text-gray-300 divide-gray-200 dark:divide-gray-700 text-sm">
+            <TableHeader className="uppercase text-xs text-gray-600 dark:text-gray-400">
+{{ tableColumns }}
+            </TableHeader>
+            <TableBody
+              className="dark:divide-gray-700"
+              items={ {{ modelLower }}s.data }
+              renderRow={({{ modelLower }}) => (
+                <tr key={{{ modelLower }}.id}>
+{{ tableRows }}
+
+                  <td className="px-3 py-4 whitespace-nowrap">
+                    <p>{formatDate({{ modelLower }}.created_at, 'dd MMM yyyy, hh:mm a')}</p>
+                  </td>
+                  <td className="px-3 py-4 text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-2">
+                      <Link href={route('{{ modelLower }}s.show', {{ modelLower }}.id)} className="text-blue-600 hover:text-blue-900">
+                        View
+                      </Link>
+                      <button type="button" className="text-red-600 hover:text-red-900" onClick={() => onDelete({{ modelLower }})}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            />
+          </Table>
+
+          {{{ modelLower }}s.total > {{ modelLower }}s.per_page && (
+            <div className="mt-4 overflow-auto">
+              <Pagination links={{{ modelLower }}s.links} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-center p-12 border-2 border-dashed border-gray-300 rounded-lg">
+          <XCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <p className="mt-2 text-sm text-gray-500">No {{ modelLower }}s found.</p>
+        </div>
+      )}
+
+      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)}>
+        <form onSubmit={handleSubmit}>
+          <ModalHeader>Create {{ model }}</ModalHeader>
+          <ModalBody>
+{{ formFields }}
+          </ModalBody>
+          <ModalActions>
+            <Button type="submit" className="ml-2" disabled={form.processing}>Create</Button>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+          </ModalActions>
+        </form>
+      </Modal>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete {{ model }}"
+        message="Are you sure you want to delete this {{ modelLower }}?"
+        buttonLabel="Delete"
+        onConfirm={handleDelete}
+        onClose={() => setShowDeleteModal(false)}
+      />
+    </div>
+  );
+};
+
+export default Index;

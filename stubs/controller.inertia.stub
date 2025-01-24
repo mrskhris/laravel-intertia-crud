@@ -1,0 +1,89 @@
+<?php
+
+namespace {{namespace}};
+
+use {{modelNamespace}};
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
+
+class {{controllerName}} extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = {{modelName}}::query();
+
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('id', 'like', "%{$searchTerm}%")
+                  {{searchableFields}};
+            });
+        }
+
+        if ($request->has('sort')) {
+            $sortField = $request->input('sort');
+            $sortDirection = $request->input('direction', 'asc');
+
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->latest();
+        }
+
+        ${{modelVariable}}s = $query->paginate(10);
+
+        return Inertia::render('{{viewPrefix}}/Index', [
+            '{{modelVariable}}s' => ${{modelVariable}}s,
+            'filters' => $request->only(['search', 'sort', 'direction'])
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+{{validationRules}}
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        ${{modelVariable}} = {{modelName}}::create($validator->validated());
+
+        return redirect()->route('{{routePrefix}}.show', ${{modelVariable}})
+            ->with('success', '{{modelName}} created successfully.');
+    }
+
+    public function show({{modelName}} ${{modelVariable}})
+    {
+        return Inertia::render('{{viewPrefix}}/Show', [
+            '{{modelVariable}}' => ${{modelVariable}}
+        ]);
+    }
+
+    public function update(Request $request, {{modelName}} ${{modelVariable}})
+    {
+        $validator = Validator::make($request->all(), [
+{{validationRules}}
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        ${{modelVariable}}->update($validator->validated());
+
+        return redirect()->route('{{routePrefix}}.show', ${{modelVariable}})
+            ->with('success', '{{modelName}} updated successfully.');
+    }
+
+    public function destroy({{modelName}} ${{modelVariable}})
+    {
+        ${{modelVariable}}->delete();
+
+        return redirect()->route('{{routePrefix}}.index')
+            ->with('success', '{{modelName}} deleted successfully.');
+    }
+}

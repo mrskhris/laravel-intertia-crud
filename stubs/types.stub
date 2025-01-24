@@ -1,0 +1,21 @@
+export interface {{ model }} {
+  id: number;
+{{ fields }}
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaginatedResource<T> {
+  data: T[];
+  total: number;
+  per_page: number;
+  current_page: number;
+  first_page_url: string;
+  last_page_url: string;
+  last_page: number;
+  links: {
+    url: string | null;
+    label: string;
+    active: boolean;
+  }[];
+}
