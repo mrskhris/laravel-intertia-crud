@@ -104,7 +104,7 @@ class GenerateComponentCommand extends Command
 
     protected function createTypes($modelName, $fields)
     {
-        $stub = $this->files->get(__DIR__ . '/../../stubs/types.stub');
+        $stub = $this->getStub('types.stub');
 
         $typeFields = collect($fields)->map(function ($field) {
             $type = match ($field['type']) {
@@ -134,7 +134,7 @@ class GenerateComponentCommand extends Command
 
     protected function createIndexComponent($modelName, $fields)
     {
-        $stub = $this->files->get(__DIR__ . '/../../stubs/react/index.stub');
+        $stub = $this->getStub('react/index.stub');
         $pluralModel = Str::plural($modelName);
 
         $formFields = $this->generateFormFields($fields, Str::lower($modelName));
@@ -166,9 +166,19 @@ class GenerateComponentCommand extends Command
         $this->files->put($path, $content);
     }
 
+    protected function getStub($file)
+    {
+        $stubPath = base_path('stubs/inertia-crud/' . $file);
+        if (!$this->files->exists($stubPath)) {
+            $stubPath = __DIR__ . '/../../stubs/' . $file;
+        }
+
+        return $this->files->get($stubPath);
+    }
+
     protected function createShowComponent($modelName, $fields)
     {
-        $stub = $this->files->get(__DIR__ . '/../../stubs/react/show.stub');
+        $stub = $this->getStub('react/show.stub');
         $pluralModel = Str::plural($modelName);
         $lowerModel = Str::lower($modelName);
 
@@ -294,7 +304,7 @@ class GenerateComponentCommand extends Command
 
     protected function copyPaginationComponent()
     {
-        $stub = $this->files->get(__DIR__ . '/../../stubs/react/pagination.stub');
+        $stub = $this->getStub('react/pagination.stub');
         $path = resource_path('js/Components/Pagination.tsx');
 
         if ($this->files->exists($path)) {

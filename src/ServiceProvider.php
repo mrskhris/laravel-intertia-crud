@@ -14,6 +14,10 @@ class ServiceProvider extends BaseServiceProvider
                 Commands\GenerateInertiaResource::class,
             ]);
         }
+
+        $this->publishes([
+            __DIR__ . '/../stubs' => base_path('stubs') . '/inertia-crud',
+        ], 'inertia-crud-stubs');
     }
 
     public function register() {}

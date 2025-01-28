@@ -80,7 +80,11 @@ class GenerateInertiaResource extends Command
             ->map(fn($field) => "        '{$field}'")
             ->join(",\n");
 
-        $stub = File::get(__DIR__ . '/../../stubs/model.stub');
+        $stubPath = base_path('stubs/inertia-crud/model.stub');
+        if (!File::exists($stubPath)) {
+            $stubPath = __DIR__ . '/../../stubs/model.stub';
+        }
+        $stub = File::get($stubPath);
         $content = str_replace(
             ['{{ modelName }}', '{{ fillable }}'],
             [$name, $fillable],
@@ -107,7 +111,12 @@ class GenerateInertiaResource extends Command
             ->map(fn($field) => "            '{$field['name']}' => [" . implode(', ', array_map(fn($rule) => "'{$rule}'", $field['validation'])) . "]")
             ->join(",\n");
 
-        $stub = File::get(__DIR__ . '/../../stubs/controller.inertia.stub');
+        $stubPath = base_path('stubs/inertia-crud/controller.inertia.stub');
+        if (!File::exists($stubPath)) {
+            $stubPath = __DIR__ . '/../../stubs/controller.inertia.stub';
+        }
+
+        $stub = File::get($stubPath);
         $content = str_replace(
             [
                 '{{namespace}}',

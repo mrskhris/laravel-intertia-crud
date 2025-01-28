@@ -36,13 +36,13 @@ See the [usage instruction](https://github.com/wedevsOfficial/tail-react) of `@w
 
 ## Usage
 
-1. Generate a new CRUD controller:
+1. Generate a new CRUD resource:
 
     ```bash
-    php artisan inertia:make-controller CommentController -m Comment
+    php artisan inertia:make-resource Modelname
     ```
 
-It'll create the controller and add a resource route in your `web.php` route. Please manually import the controller there.
+It'll create the controller, model and add a resource route in your `web.php` route. Please manually import the controller there.
 
 2. Generate React page CRUD components:
 
