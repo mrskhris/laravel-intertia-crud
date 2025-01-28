@@ -38,23 +38,24 @@ class GenerateInertiaResource extends Command
             if (empty($name)) break;
 
             $type = \Laravel\Prompts\select('Field type', [
-                'string' => 'String',
+                'string'  => 'String',
                 'integer' => 'Integer',
-                'text' => 'Text',
-                'date' => 'Date',
+                'text'    => 'Text',
+                'date'    => 'Date',
                 'boolean' => 'Boolean',
-                'email' => 'Email'
+                'email'   => 'Email'
             ]);
 
             $validation = \Laravel\Prompts\multiselect(
                 'Validation rules',
                 [
                     'required' => 'Required',
-                    'unique' => 'Unique',
-                    'max:255' => 'Max 255 chars',
-                    'email' => 'Email format',
-                    'numeric' => 'Numeric',
-                    'boolean' => 'Boolean'
+                    // 'unique'   => 'Unique',
+                    'nullable' => 'Nullable',
+                    'max:255'  => 'Max 255 chars',
+                    'email'    => 'Email format',
+                    'numeric'  => 'Numeric',
+                    'boolean'  => 'Boolean'
                 ]
             );
 
@@ -156,10 +157,26 @@ class GenerateInertiaResource extends Command
     {
         $routePrefix = Str::plural(Str::kebab($name));
         $routes = "\nRoute::resource('{$routePrefix}', {$name}Controller::class)->except(['create', 'edit']);";
+        $routes .= "\nRoute::delete('/bulk/{$routePrefix}', [{$name}Controller::class, 'bulkDelete'])->name('{$routePrefix}.bulk-delete');\n";
 
         File::append(
             base_path('routes/web.php'),
             $routes
         );
+
+        // Add the controller import
+        $this->replaceInFile(
+            base_path('routes/web.php'),
+            'use Illuminate\Support\Facades\Route;',
+            "use Illuminate\Support\Facades\Route;\nuse App\Http\Controllers\\{$name}Controller;"
+        );
+    }
+
+    protected function replaceInFile($path, $search, $replace)
+    {
+        $content = File::get($path);
+        $content = str_replace($search, $replace, $content);
+
+        File::put($path, $content);
     }
 }

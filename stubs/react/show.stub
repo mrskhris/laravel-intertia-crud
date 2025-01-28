@@ -1,21 +1,13 @@
 import React, { useState } from 'react';
-import { Link, router, useForm } from '@inertiajs/react';
-import {
-  Button,
-  ConfirmModal,
-  Modal,
-  ModalActions,
-  ModalBody,
-  ModalHeader,
-  TextField,
-  Textarea
-} from '@wedevs/tail-react';
+import { Link, router } from '@inertiajs/react';
+import { Button, ConfirmModal } from '@wedevs/tail-react';
 import {
   ChevronLeftIcon,
   PencilSquareIcon,
-  TrashIcon
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { {{ model }} } from '@/types';
+import Form from './Form';
 
 type Props = {
   {{ modelLower }}: {{ model }};
@@ -25,27 +17,16 @@ const Show = ({ {{ modelLower }} }: Props) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const form = useForm({
-{{ formEditingState }}
-  });
-
   const handleDelete = () => {
-    router.delete(route('{{ modelLower }}s.destroy', {{ modelLower }}.id), {
-      onSuccess: () => router.visit(route('{{ modelLower }}s.index'))
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    form.put(route('{{ modelLower }}s.update', {{ modelLower }}.id), {
-      onSuccess: () => setShowEditModal(false)
+    router.delete(route('{{ modelLowerPlural }}.destroy', {{ modelLower }}.id), {
+      onSuccess: () => router.visit(route('{{ modelLowerPlural }}.index')),
     });
   };
 
   return (
     <div className="max-w-4xl mx-auto my-8">
       <div className="flex flex-wrap items-center justify-between sm:flex-nowrap mb-8">
-        <Link href={route('{{ modelLower }}s.index')} className="flex items-center gap-2">
+        <Link href={route('{{ modelLowerPlural }}.index')} className="flex items-center gap-2">
           <ChevronLeftIcon className="h-5 w-5" />
           <span>Back</span>
         </Link>
@@ -65,18 +46,12 @@ const Show = ({ {{ modelLower }} }: Props) => {
 {{ displayFields }}
       </div>
 
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
-        <form onSubmit={handleSubmit}>
-          <ModalHeader>Edit {{ model }}</ModalHeader>
-          <ModalBody>
-{{ formFields }}
-          </ModalBody>
-          <ModalActions>
-            <Button type="submit" className="ml-2" disabled={form.processing}>Update</Button>
-            <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancel</Button>
-          </ModalActions>
-        </form>
-      </Modal>
+      <Form
+        {{ modelLower }}={{{ modelLower }}}
+        onSuccess={() => setShowEditModal(false)}
+        showModal={showEditModal}
+        setShowModal={setShowEditModal}
+      />
 
       <ConfirmModal
         isOpen={showDeleteModal}

@@ -1,24 +1,16 @@
 import React, { useState } from 'react';
 import { PlusIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import {
-  Button,
-  ConfirmModal,
-  Modal,
-  ModalActions,
-  ModalBody,
-  ModalHeader,
-  Table,
-  TableBody,
-  TableHeader,
-  TextField,
-  Textarea
-} from '@wedevs/tail-react';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Button, ConfirmModal, TextField } from '@wedevs/tail-react';
+import { Link, router } from '@inertiajs/react';
+
+// internal components
 import Pagination from '@/Components/Pagination';
 import { {{ model }}, PaginatedResource } from '@/types';
+import Table, { BulkAction, Column } from '@/Components/Table';
+import Form from './Form';
 
 type Props = {
-  {{ modelLower }}s: PaginatedResource<{{ model }}>;
+  {{ modelLowerPlural }}: PaginatedResource<{{ model }}>;
   filters: {
     search?: string;
     sort?: string;
@@ -33,15 +25,65 @@ const formatDate = (date: string, format: string) => {
   }).format(new Date(date));
 };
 
-const Index = ({ {{ modelLower }}s, filters }: Props) => {
-  const [search, setSearch] = useState('');
+const Index = ({ {{ modelLowerPlural }}, filters }: Props) => {
+  const [search, setSearch] = useState(filters.search || '');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState<{{ model }} | null>(null);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const form = useForm({
-{{ formInitialState }}
-  });
+  const columns: Column<{{ model }}>[] = [
+  {{ tableColumns }}
+    ,
+    {
+      key: 'created_at',
+      label: 'Created',
+      sortable: true,
+      width: '200px',
+      render: (row) => (
+        <p>{formatDate(row.created_at, 'dd MMM yyyy, hh:mm a')}</p>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      width: '100px',
+      render: (row) => (
+        <div className="flex justify-end gap-2">
+          <Link
+            href={route('{{ modelLowerPlural }}.show', row.id)}
+            className="text-blue-600 hover:text-blue-900"
+          >
+            View
+          </Link>
+          <button
+            type="button"
+            className="text-red-600 hover:text-red-900"
+            onClick={() => onDelete(row)}
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const bulkActions: BulkAction<{{ model }}>[] = [
+    {
+      label: 'Delete',
+      action: 'delete',
+      onClick: (selectedRows) => {
+        let ids = selectedRows.map((row) => row.id);
+
+        if (ids.length) {
+          setSelectedIds(ids);
+          setShowBulkDeleteModal(true);
+        }
+      },
+    },
+  ];
 
   const handleSearch = (value: string) => {
     router.reload({ data: { search: value, page: 1 } });
@@ -53,19 +95,25 @@ const Index = ({ {{ modelLower }}s, filters }: Props) => {
   };
 
   const handleDelete = () => {
-    router.delete(route('{{ modelLower }}s.destroy', deleting?.id), {
+    router.delete(route('{{ modelLowerPlural }}.destroy', deleting?.id), {
       onSuccess: () => {
         setShowDeleteModal(false);
       },
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    form.post(route('{{ modelLower }}s.store'), {
-      onSuccess: () => setShowCreateModal(false)
+  const handleBulkDelete = () => {
+    router.delete(route('{{ modelLowerPlural }}.bulk-delete'), {
+      data: { ids: selectedIds },
+      onSuccess: () => {
+        setShowBulkDeleteModal(false);
+        setSelectedIds([]);
+      },
     });
+  };
+
+  const handleSort = (key: keyof {{ model }}, direction: 'asc' | 'desc') => {
+    router.reload({ data: { sort: key, direction: direction, page: 1 } });
   };
 
   return (
@@ -82,7 +130,7 @@ const Index = ({ {{ modelLower }}s, filters }: Props) => {
         <div className="w-full md:w-1/2 lg:w-1/3">
           <TextField
             type="search"
-            placeholder="Search {{ modelLower }}s..."
+            placeholder="Search {{ modelLowerPlural }}..."
             value={search}
             className="w-full"
             onChange={(value) => setSearch(value)}
@@ -95,62 +143,38 @@ const Index = ({ {{ modelLower }}s, filters }: Props) => {
         </div>
       </div>
 
-      {{{ modelLower }}s.data.length > 0 ? (
-        <div className="overflow-x-auto md:overflow-auto lg:overflow-auto">
-          <Table className="text-left text-gray-900 dark:text-gray-300 divide-gray-200 dark:divide-gray-700 text-sm">
-            <TableHeader className="uppercase text-xs text-gray-600 dark:text-gray-400">
-{{ tableColumns }}
-            </TableHeader>
-            <TableBody
-              className="dark:divide-gray-700"
-              items={ {{ modelLower }}s.data }
-              renderRow={({{ modelLower }}) => (
-                <tr key={{{ modelLower }}.id}>
-{{ tableRows }}
+      {{{ modelLowerPlural }}.data.length > 0 ? (
+        <div className="overflow-x-auto md:overflow-auto lg:overflow-auto text-sm">
+          <Table
+            columns={columns}
+            data={{{ modelLowerPlural }}.data}
+            selectable={true}
+            dense={false}
+            onSort={handleSort}
+            bulkActions={bulkActions}
+          />
 
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    <p>{formatDate({{ modelLower }}.created_at, 'dd MMM yyyy, hh:mm a')}</p>
-                  </td>
-                  <td className="px-3 py-4 text-right whitespace-nowrap">
-                    <div className="flex justify-end gap-2">
-                      <Link href={route('{{ modelLower }}s.show', {{ modelLower }}.id)} className="text-blue-600 hover:text-blue-900">
-                        View
-                      </Link>
-                      <button type="button" className="text-red-600 hover:text-red-900" onClick={() => onDelete({{ modelLower }})}>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            />
-          </Table>
-
-          {{{ modelLower }}s.total > {{ modelLower }}s.per_page && (
+          {{{ modelLowerPlural }}.total > {{ modelLowerPlural }}.per_page && (
             <div className="mt-4 overflow-auto">
-              <Pagination links={{{ modelLower }}s.links} />
+              <Pagination links={{{ modelLowerPlural }}.links} />
             </div>
           )}
         </div>
       ) : (
         <div className="text-center p-12 border-2 border-dashed border-gray-300 rounded-lg">
           <XCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-sm text-gray-500">No {{ modelLower }}s found.</p>
+          <p className="mt-2 text-sm text-gray-500">No {{ modelLowerPlural }} found.</p>
         </div>
       )}
 
-      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)}>
-        <form onSubmit={handleSubmit}>
-          <ModalHeader>Create {{ model }}</ModalHeader>
-          <ModalBody>
-{{ formFields }}
-          </ModalBody>
-          <ModalActions>
-            <Button type="submit" className="ml-2" disabled={form.processing}>Create</Button>
-            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-          </ModalActions>
-        </form>
-      </Modal>
+      <Form
+        {{ modelLower }}={null}
+        showModal={showCreateModal}
+        setShowModal={setShowCreateModal}
+        onSuccess={() => {
+          setShowCreateModal(false);
+        }}
+      />
 
       <ConfirmModal
         isOpen={showDeleteModal}
@@ -159,6 +183,15 @@ const Index = ({ {{ modelLower }}s, filters }: Props) => {
         buttonLabel="Delete"
         onConfirm={handleDelete}
         onClose={() => setShowDeleteModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showBulkDeleteModal}
+        title="Delete {{ model }}s"
+        message="Are you sure you want to delete selected {{ modelLowerPlural }}?"
+        buttonLabel="Delete"
+        onConfirm={handleBulkDelete}
+        onClose={() => setShowBulkDeleteModal(false)}
       />
     </div>
   );

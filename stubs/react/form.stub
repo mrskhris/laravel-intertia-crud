@@ -1,0 +1,65 @@
+import React from 'react';
+import {
+  Button,
+  Modal,
+  ModalActions,
+  ModalBody,
+  ModalHeader,
+  TextField,
+  Textarea,
+} from '@wedevs/tail-react';
+import { {{ model }} } from '@/types';
+import { useForm } from '@inertiajs/react';
+
+type Props = {
+  {{ modelLower }}: {{ model }} | null;
+  onSuccess: () => void;
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
+};
+
+const Form = ({ {{ modelLower }}, onSuccess, showModal, setShowModal }: Props) => {
+  const form = useForm({
+{{ formEditingState }}
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if ({{ modelLower }}?.id) {
+      form.put(route('{{ modelLowerPlural }}.update', {{ modelLower }}.id), {
+        onSuccess: () => onSuccess(),
+      });
+    } else {
+      form.post(route('{{ modelLowerPlural }}.store'), {
+        onSuccess: () => {
+          form.setData({
+{{ formInitialState }}
+          });
+          onSuccess();
+        },
+      });
+    }
+  };
+  return (
+    <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+      <form onSubmit={handleSubmit}>
+        <ModalHeader>
+          {{{ modelLower }}?.id ? 'Update' : 'Create'} {{ model }}
+        </ModalHeader>
+        <ModalBody>
+{{ formFields }}
+        </ModalBody>
+        <ModalActions>
+          <Button type="submit" className="ml-2" disabled={form.processing}>
+            {{{ modelLower }}?.id ? 'Update' : 'Create'}
+          </Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+        </ModalActions>
+      </form>
+    </Modal>
+  );
+};
+
+export default Form;

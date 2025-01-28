@@ -32,10 +32,10 @@ class {{controllerName}} extends Controller
             $query->latest();
         }
 
-        ${{modelVariable}}s = $query->paginate(10);
+        ${{routePrefix}} = $query->paginate(20);
 
         return Inertia::render('{{viewPrefix}}/Index', [
-            '{{modelVariable}}s' => ${{modelVariable}}s,
+            '{{routePrefix}}' => ${{routePrefix}},
             'filters' => $request->only(['search', 'sort', 'direction'])
         ]);
     }
@@ -50,9 +50,9 @@ class {{controllerName}} extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        ${{modelVariable}} = {{modelName}}::create($validator->validated());
+        {{modelName}}::create($validator->validated());
 
-        return redirect()->route('{{routePrefix}}.show', ${{modelVariable}})
+        return redirect()->route('{{routePrefix}}.index')
             ->with('success', '{{modelName}} created successfully.');
     }
 
@@ -73,7 +73,9 @@ class {{controllerName}} extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        ${{modelVariable}}->update($validator->validated());
+        $data = $validator->validated();
+
+        ${{modelVariable}}->update($data);
 
         return redirect()->route('{{routePrefix}}.show', ${{modelVariable}})
             ->with('success', '{{modelName}} updated successfully.');
@@ -85,5 +87,17 @@ class {{controllerName}} extends Controller
 
         return redirect()->route('{{routePrefix}}.index')
             ->with('success', '{{modelName}} deleted successfully.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:{{routePrefix}},id'
+        ]);
+
+        {{modelName}}::whereIn('id', $request->ids)->delete();
+
+        return redirect()->route('{{routePrefix}}.index')->with('success', 'Selected {{routePrefix}} have been deleted.');
     }
 }

@@ -47,8 +47,9 @@ class GenerateComponentCommand extends Command
         $this->createTypes($modelName, $fields);
 
         // Create components
-        $this->createIndexComponent($modelName, $fields);
-        $this->createShowComponent($modelName, $fields);
+        $this->createComponent($modelName, 'react/index.stub', 'Index.tsx', $fields);
+        $this->createComponent($modelName, 'react/show.stub', 'Show.tsx', $fields);
+        $this->createComponent($modelName, 'react/form.stub', 'Form.tsx', $fields);
         $this->copyPaginationComponent();
 
         $this->info('Components created successfully.');
@@ -80,7 +81,7 @@ class GenerateComponentCommand extends Command
                 [
                     'required'    => 'Required in forms',
                     'showInTable' => 'Show in table listing',
-                    // 'sortable'    => 'Sortable in table',
+                    'sortable'    => 'Sortable in table',
                 ],
                 default: ['showInTable']
             );
@@ -91,7 +92,7 @@ class GenerateComponentCommand extends Command
                 'label' => $label,
                 'required' => in_array('required', $options),
                 'showInTable' => in_array('showInTable', $options),
-                // 'sortable' => in_array('sortable', $options),
+                'sortable' => in_array('sortable', $options),
             ];
 
             if (!confirm('Add another field?', default: true)) {
@@ -126,42 +127,61 @@ class GenerateComponentCommand extends Command
 
         if (file_exists($path)) {
             $existing = $this->files->get($path);
-            $this->files->put($path, $existing . "\n" . $content);
+
+            if ($this->interfaceExists($existing, $modelName)) {
+                $content = $this->replaceInterface($existing, $content);
+            } else {
+                $content = $existing . "\n\n" . $content;
+            }
+
+            if (!$this->interfaceExists($existing, 'PaginatedResource')) {
+                $content = $content . "\n\n" . $this->generatePaginatedResourceInterface();
+            }
+
+            $this->files->put($path, $content);
         } else {
             $this->files->put($path, $content);
         }
     }
 
-    protected function createIndexComponent($modelName, $fields)
+    protected function createComponent($modelName, $subPath, $fileName, $fields)
     {
-        $stub = $this->getStub('react/index.stub');
-        $pluralModel = Str::plural($modelName);
-
-        $formFields = $this->generateFormFields($fields, Str::lower($modelName));
-        $tableColumns = $this->generateTableColumns($fields);
-        $tableRows = $this->generateTableRows($fields, $modelName);
+        $stub          = $this->getStub($subPath);
+        $pluralModel   = Str::plural($modelName);
+        $lowerModel    = Str::lower($modelName);
+        $lowerPlural   = Str::lower($pluralModel);
+        $formFields    = $this->generateFormFields($fields, Str::lower($modelName));
+        $tableColumns  = $this->generateTableColumns($fields);
+        $tableRows     = $this->generateTableRows($fields, $modelName);
+        $displayFields = $this->generateDisplayFields($fields, $lowerModel);
 
         $content = str_replace(
             [
                 '{{ model }}',
                 '{{ modelLower }}',
+                '{{ modelLowerPlural }}',
                 '{{ tableColumns }}',
                 '{{ tableRows }}',
+                '{{ displayFields }}',
                 '{{ formInitialState }}',
-                '{{ formFields }}'
+                '{{ formFields }}',
+                '{{ formEditingState }}',
             ],
             [
                 $modelName,
                 Str::camel($modelName),
+                $lowerPlural,
                 $tableColumns,
                 $tableRows,
+                $displayFields,
                 $formFields['formInitialState'],
-                $formFields['formFields']
+                $formFields['formFields'],
+                $formFields['editingState'],
             ],
             $stub
         );
 
-        $path = resource_path("js/Pages/{$pluralModel}/Index.tsx");
+        $path = resource_path("js/Pages/{$pluralModel}/{$fileName}");
         $this->ensureDirectoryExists(dirname($path));
         $this->files->put($path, $content);
     }
@@ -176,40 +196,6 @@ class GenerateComponentCommand extends Command
         return $this->files->get($stubPath);
     }
 
-    protected function createShowComponent($modelName, $fields)
-    {
-        $stub = $this->getStub('react/show.stub');
-        $pluralModel = Str::plural($modelName);
-        $lowerModel = Str::lower($modelName);
-
-        $displayFields = $this->generateDisplayFields($fields, $lowerModel);
-        $formFieldsData = $this->generateFormFields($fields, $lowerModel);
-
-        $content = str_replace(
-            [
-                '{{ model }}',
-                '{{ modelLower }}',
-                '{{ displayFields }}',
-                '{{ formInitialState }}',
-                '{{ formEditingState }}',
-                '{{ formFields }}'
-            ],
-            [
-                $modelName,
-                Str::camel($modelName),
-                $displayFields,
-                $formFieldsData['formInitialState'],
-                $formFieldsData['editingState'],
-                $formFieldsData['formFields']
-            ],
-            $stub
-        );
-
-        $path = resource_path("js/Pages/{$pluralModel}/Show.tsx");
-        $this->ensureDirectoryExists(dirname($path));
-        $this->files->put($path, $content);
-    }
-
     protected function ensureDirectoryExists($path)
     {
         if (!$this->files->isDirectory($path)) {
@@ -217,23 +203,56 @@ class GenerateComponentCommand extends Command
         }
     }
 
+    protected function interfaceExists($content, $modelName)
+    {
+        return Str::contains($content, "export interface {$modelName}");
+    }
+
+    protected function replaceInterface($content, $interface)
+    {
+        return preg_replace('/export interface (\w+) {[^}]+}/', $interface, $content);
+    }
+
+    /**
+     * Generate the PaginatedResource interface.
+     *
+     * @return string
+     */
+    protected function generatePaginatedResourceInterface(): string
+    {
+        return <<<TS
+export interface PaginatedResource<T> {
+  data: T[];
+  total: number;
+  per_page: number;
+  current_page: number;
+  first_page_url: string;
+  last_page_url: string;
+  last_page: number;
+  links: {
+    url: string | null;
+    label: string;
+    active: boolean;
+  }[];
+}
+
+TS;
+    }
+
     protected function generateTableColumns($fields)
     {
         // First add the linked title column
-        $columns = [];
-
-        // Add other columns
-        $columns = array_merge($columns, collect($fields)
+        $columns = collect($fields)
             ->filter(fn($field) => $field['showInTable'])
             ->map(function ($field) {
-                return "<th className=\"px-3 py-3.5 font-normal\" scope=\"col\">{$field['label']}</th>";
-            })->toArray());
+                return "{
+                    key: '{$field['name']}',
+                    label: '{$field['label']}',
+                    sortable: " . ($field['sortable'] ? 'true' : 'false') . ",
+                }";
+            })->toArray();
 
-        // Add actions column
-        $columns[] = "<th className=\"px-3 py-3.5 font-normal\" scope=\"col\">Created</th>";
-        $columns[] = "<th className=\"px-3 py-3.5 font-normal text-right\" scope=\"col\">Actions</th>";
-
-        return implode("\n", $columns);
+        return implode(",\n", $columns);
     }
 
     protected function generateFormFields($fields, $modelName)
@@ -259,7 +278,7 @@ class GenerateComponentCommand extends Command
 
             $editingState = $fields->map(
                 fn($field) =>
-                "    {$field['name']}: {$modelName}.{$field['name']}"
+                "    {$field['name']}: {$modelName}?.{$field['name']} || ''"
             )->join(",\n");
 
             // Generate the form fields JSX
