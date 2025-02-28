@@ -4,13 +4,13 @@ namespace {{namespace}};
 
 use {{modelNamespace}};
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Inertia\Inertia;
+use Inertia\Response;
 use Illuminate\Support\Facades\Validator;
 
 class {{controllerName}} extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $query = {{modelName}}::query();
 
@@ -18,7 +18,7 @@ class {{controllerName}} extends Controller
             $searchTerm = $request->input('search');
 
             $query->where(function($q) use ($searchTerm) {
-                $q->where('id', 'like', "%{$searchTerm}%")
+                $q->where('id', 'like', "%$searchTerm%")
                   {{searchableFields}};
             });
         }
@@ -35,13 +35,13 @@ class {{controllerName}} extends Controller
         ${{routePrefix}} = $query->paginate(20);
 
         return Inertia::render('Router', [
-            'page' => '{{routePrefix}}.index'),
+            'page' => '{{routePrefix}}.index',
             '{{routePrefix}}' => ${{routePrefix}},
             'filters' => $request->only(['search', 'sort', 'direction'])
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
 {{validationRules}}
@@ -57,15 +57,15 @@ class {{controllerName}} extends Controller
             ->with('success', '{{modelName}} created successfully.');
     }
 
-    public function show({{modelName}} ${{modelVariable}})
+    public function show({{modelName}} ${{modelVariable}}): Response
     {
         return Inertia::render('Router', [
-            'page' => '{{routePrefix}}.show'
+            'page' => '{{routePrefix}}.show',
             '{{modelVariable}}' => ${{modelVariable}}
         ]);
     }
 
-    public function update(Request $request, {{modelName}} ${{modelVariable}})
+    public function update(Request $request, {{modelName}} ${{modelVariable}}): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
 {{validationRules}}
@@ -83,7 +83,7 @@ class {{controllerName}} extends Controller
             ->with('success', '{{modelName}} updated successfully.');
     }
 
-    public function destroy({{modelName}} ${{modelVariable}})
+    public function destroy({{modelName}} ${{modelVariable}}): RedirectResponse
     {
         ${{modelVariable}}->delete();
 
@@ -91,7 +91,7 @@ class {{controllerName}} extends Controller
             ->with('success', '{{modelName}} deleted successfully.');
     }
 
-    public function bulkDelete(Request $request)
+    public function bulkDelete(Request $request): RedirectResponse
     {
         $request->validate([
             'ids' => 'required|array',
