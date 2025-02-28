@@ -1,5 +1,5 @@
 {
-    "name": "tareq1988/laravel-inertia-crud",
+    "name": "mrskhris/laravel-intertia-crud",
     "description": "A CRUD generator for inertia and react",
     "type": "library",
     "autoload": {
@@ -11,6 +11,10 @@
         {
             "name": "Tareq Hasan",
             "email": "tareq1988@gmail.com"
+        },
+        {
+            "name": "Elena Khrissanova",
+            "email": "mrskhris@gmail.com"
         }
     ],
     "minimum-stability": "dev",
