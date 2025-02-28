@@ -1,29 +1,23 @@
 import React from 'react';
+import {Button} from "@/Components/ui/button.jsx";
+import {Input} from "@/Components/ui/input.jsx";
 import {
-  Button,
   Modal,
   ModalActions,
   ModalBody,
   ModalHeader,
-  TextField,
   Textarea,
 } from '@wedevs/tail-react';
-import { {{ model }} } from '@/types';
+
 import { useForm } from '@inertiajs/react';
 
-type Props = {
-  {{ modelLower }}: {{ model }} | null;
-  onSuccess: () => void;
-  showModal: boolean;
-  setShowModal: (show: boolean) => void;
-};
 
-const Form = ({ {{ modelLower }}, onSuccess, showModal, setShowModal }: Props) => {
+const Form = ({ {{ modelLower }}, onSuccess, showModal, setShowModal }) => {
   const form = useForm({
 {{ formEditingState }}
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if ({{ modelLower }}?.id) {
       form.put(route('{{ modelLowerPlural }}.update', {{ modelLower }}.id), {

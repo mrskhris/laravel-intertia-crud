@@ -47,9 +47,9 @@ class GenerateComponentCommand extends Command
         //$this->createTypes($modelName, $fields);
 
         // Create components
-        $this->createComponent($modelName, 'react/index.stub', 'Index.tsx', $fields);
-        $this->createComponent($modelName, 'react/show.stub', 'Show.tsx', $fields);
-        $this->createComponent($modelName, 'react/form.stub', 'Form.tsx', $fields);
+        $this->createComponent($modelName, 'react/index.stub', 'Index.jsx', $fields);
+        $this->createComponent($modelName, 'react/show.stub', 'Show.jsx', $fields);
+        $this->createComponent($modelName, 'react/form.stub', 'Form.jsx', $fields);
         $this->copyPaginationComponent();
 
         $this->info('Components created successfully.');

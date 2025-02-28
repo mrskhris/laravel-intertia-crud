@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Button, ConfirmModal } from '@wedevs/tail-react';
+import {ConfirmModal} from "@/Components/ui/confirm.jsx";
+import {Button} from "@/Components/ui/button.jsx";
 import {
   ChevronLeftIcon,
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { {{ model }} } from '@/types';
+
 import Form from './Form';
 
-type Props = {
-  {{ modelLower }}: {{ model }};
-};
-
-const Show = ({ {{ modelLower }} }: Props) => {
+const Show = ({ {{ modelLower }} }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 

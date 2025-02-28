@@ -1,16 +1,10 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import { Button } from '@wedevs/tail-react';
+import {Button} from "@/Components/ui/button.jsx";
 
-type Props = {
-  links: {
-    url: string | null;
-    label: string;
-    active: boolean;
-  }[];
-};
 
-const Pagination = ({ links }: Props) => {
+
+const Pagination = ({ links }) => {
   return links.map((link, index) => (
     <Button
       key={index}
