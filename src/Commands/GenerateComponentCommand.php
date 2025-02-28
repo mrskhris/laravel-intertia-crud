@@ -44,7 +44,7 @@ class GenerateComponentCommand extends Command
         $fields = $this->getFieldsFromUser();
 
         // Create types
-        $this->createTypes($modelName, $fields);
+        //$this->createTypes($modelName, $fields);
 
         // Create components
         $this->createComponent($modelName, 'react/index.stub', 'Index.tsx', $fields);

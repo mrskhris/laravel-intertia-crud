@@ -34,7 +34,8 @@ class {{controllerName}} extends Controller
 
         ${{routePrefix}} = $query->paginate(20);
 
-        return Inertia::render('{{viewPrefix}}/Index', [
+        return Inertia::render('Router', [
+            'page' => '{{routePrefix}}.index'),
             '{{routePrefix}}' => ${{routePrefix}},
             'filters' => $request->only(['search', 'sort', 'direction'])
         ]);
@@ -58,7 +59,8 @@ class {{controllerName}} extends Controller
 
     public function show({{modelName}} ${{modelVariable}})
     {
-        return Inertia::render('{{viewPrefix}}/Show', [
+        return Inertia::render('Router', [
+            'page' => '{{routePrefix}}.show'
             '{{modelVariable}}' => ${{modelVariable}}
         ]);
     }
