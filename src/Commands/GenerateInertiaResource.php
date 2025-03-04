@@ -146,7 +146,7 @@ class GenerateInertiaResource extends Command
 
         $path = app_path("Http/Controllers/{$name}Controller.php");
         if(File::exists($path)){
-            $path = preg_replace("/.php$", "Crud.php", $path);
+            $path = preg_replace("/.php$/", "Crud.php", $path);
         }
         if (!File::exists($path)) {
             File::put($path, $content);

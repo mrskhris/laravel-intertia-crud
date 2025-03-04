@@ -24,12 +24,13 @@ This is a Laravel package that provides a simple and efficient way to create CRU
     composer require tareq1988/laravel-inertia-crud
     ```
 
-2. Install `@wedevs/tail-react` and `@heroicons/react` package:
+2. Install `shacdn` and `@heroicons/react` package:
+
+See https://ui.shadcn.com/docs/installation for instructions for your framework.
+Also, you need to install the following components: AlertDialog, Button, Input, 
 
     ```bash
-    yarn add @wedevs/tail-react @heroicons/react
-    // or 
-    npm i @wedevs/tail-react @heroicons/react
+   
     ```
 
 See the [usage instruction](https://github.com/wedevsOfficial/tail-react) of `@wedevs/tail-react` package.
